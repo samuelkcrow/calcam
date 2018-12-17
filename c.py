@@ -10,6 +10,7 @@ def getImage():
     with open(filename, 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
+    print("Image retrieved")
 
 def waitUntil(period=1):
     '''Waits until next minute
@@ -20,9 +21,11 @@ def waitUntil(period=1):
     getImage()
     return False
 
-def startThread(threadTarget, *args, *kwargs):
+def startThread(threadTarget, *args, **kwargs):
     t = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
     t.start()
     print("Thread is waiting in background")
 
+getImage()
+startThread(waitUntil)
 
