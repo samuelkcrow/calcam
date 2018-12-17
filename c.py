@@ -1,7 +1,7 @@
 import requests
 import shutil
 import time
-
+import threading 
 
 def getImage():
     url = "https://www.calvin.edu/img/calcam_large.jpg"
@@ -11,8 +11,18 @@ def getImage():
         shutil.copyfileobj(response.raw, out_file)
     del response
 
-while True:
-    print("Another one")
+def waitUntil(period=1):
+    '''Waits until next minute
+    '''
+    end_time = (time.time() // 60 + 1) * 60
+    while time.time() < end_time:
+        time.sleep(period)
     getImage()
-    time.sleep(59)
+    return False
+
+def startThread(threadTarget, *args, *kwargs):
+    t = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
+    t.start()
+    print("Thread is waiting in background")
+
 
