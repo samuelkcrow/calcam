@@ -2,11 +2,14 @@ import requests
 import shutil
 import time
 import threading 
+import os
+
 
 def getImage():
     url = "https://www.calvin.edu/img/calcam_large.jpg"
     response = requests.get(url, stream=True)
-    filename = "calcam_large" + str(int(time.asctime())) + ".jpg"
+    cur_time = time.strftime("%b%d%H%M",time.gmtime())
+    filename = "/var/www/img/calcam_large" + cur_time + ".jpg"
     with open(filename, 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
@@ -22,11 +25,13 @@ def waitUntil(period=1):
     return False
 
 def startThread(threadTarget, *args, **kwargs):
-    t = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
-    t.start()
+    thread = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
+    thread.start()
     print("Thread is waiting in background")
+
+def makeGif():
+    pass
 
 getImage()
 startThread(waitUntil)
 
-#Changes
