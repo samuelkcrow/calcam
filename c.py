@@ -8,8 +8,8 @@ import os
 def getImage():
     url = "https://www.calvin.edu/img/calcam_large.jpg"
     response = requests.get(url, stream=True)
-    cur_time = time.strftime("%b%d%H%M",time.gmtime())
-    filename = "/var/www/img/calcam_large" + cur_time + ".jpg"
+    current_time = time.strftime("%b%d-%H%M",time.gmtime())
+    filename = "/var/www/img/calcam_large" + current_time + ".jpg"
     with open(filename, 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
@@ -30,8 +30,12 @@ def startThread(threadTarget, *args, **kwargs):
     print("Thread is waiting in background")
 
 def makeGif():
-    pass
+    with imageio.get_writer('calcam.gif', mode='I') as writer:
+        for filename in filenames:
+            image = imageio.imread(filename)
+            writer.append_data(image)
 
 getImage()
 startThread(waitUntil)
+
 
