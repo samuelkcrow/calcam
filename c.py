@@ -26,11 +26,15 @@ def doEvery(period, methodToCall):
     '''Calls a method every period
     Input: methodToCall, method
     '''
-    while True:
-        end_time = (time.time() // period + period / 60) * 60
-        while time.time() < end_time:
-            time.sleep(period / 60)
-        methodToCall()
+    try:
+        while True:
+            end_time = (time.time() // period + period / 60) * period
+            while time.time() < end_time:
+                time.sleep(period / 60)
+            methodToCall()
+    except (KeyboardInterrupt, SystemExit):
+        cleanup_stop_thread()
+        sys.exit()
 
 def startThread(threadTarget, *args, **kwargs):
     '''Runs a method in a separate thread
@@ -48,6 +52,7 @@ def makeGif():
            file_path = os.path.join(jpg_directory, file_name)
            images.append(imageio.imread(file_path))
     imageio.mimsave('/var/www/html/img/calcam.gif', images)
+    print("Gif made")
 
 #------------------ Main ----------------------#
 
@@ -55,5 +60,7 @@ image_count = 0
 getImage()
 startThread(doEvery, 60, getImage)
 startThread(doEvery, 3600, makeGif)
-
+print("Hey maybe we don't have to exit gracefully if we don't want to")
+while True:
+    time.sleep(10)
 
