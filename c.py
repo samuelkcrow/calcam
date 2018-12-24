@@ -1,65 +1,64 @@
 #!/usr/bin/python3
 
-import requests
-import shutil
+import os
+import sys
 import time
 import threading 
-import os
+import logging
 import imageio
-import sys
 
+class Camera:
+    def __init__(self, iurl, iname, idir):
+        '''Initialized variables:
+        Url: image source
+        Name: camera name
+        Dir: directory for output
+        '''
+        self.url = iurl
+        self.name = iname
+        self.dir = os.path.join(idir, iname)
 
-image_directory = os.path.join(os.path.dirname(sys.argv[0]), 'commons_lawn')
-url = "https://www.calvin.edu/img/calcam_large.jpg"
-
-def getImage():
-    global image_count
-    response = requests.get(url, stream=True)
-    image_file = os.path.join(image_directory, str(int(time.time())) + ".jpg")
-    with open(image_file, 'wb') as out_file:
-        shutil.copyfileobj(response.raw, out_file)
-    del response
-    print("Image retrieved")
-
-def doEvery(period, methodToCall):
-    '''Calls a method every period
-    Input: methodToCall, method
-    '''
-    try:
+    def getImageEvery(self, period):
         while True:
-            end_time = (time.time() // period + 1) * period
-            while time.time() < end_time:
-                time.sleep(period / 60)
-            methodToCall()
-    except (KeyboardInterrupt, SystemExit):
-        cleanup_stop_thread()
-        sys.exit()
+            try:
+                end_time = (time.time() // period + 1) * period
+                while time.time() < end_time:
+                    time.sleep(period / 60)
+                image_dir = os.path.join(self.dir, 'imgs', str(int(time.time())) + '.jpg')
+                image_file = imageio.imread(self.url)
+                imageio.imwrite(image_dir, image_file)
+                logging.debug("Image retrieved")
+            except Exception:
+                logging.exception("Failed to retrieve image")
 
-def startThread(threadTarget, *args, **kwargs):
-    '''Runs a method in a separate thread
-    Input: threadTarget, the method being started
-    '''
-    thread = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
-    thread.start()
-    print("Thread is waiting in background")
+    def startThread(self, threadTarget, *args, **kwargs):
+        '''Runs a method in a separate thread
+        Input: threadTarget, the method being started
+        '''
+        thread = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
+        thread.start()
+        logging.debug("Thread is waiting in background")
 
-def makeGif():
-    images = []
-    for file_name in sorted(os.listdir(image_directory)):
-        print(file_name)
-        if file_name.endswith('.jpg'):
-           file_path = os.path.join(image_directory, file_name)
-           images.append(imageio.imread(file_path))
-    imageio.mimsave('/var/www/html/img/calcam.gif', images)
-    print("Gif made")
+
+    def makeGif(self):
+        images = []
+        gif_dir = os.path.join(self.dir, 'gifs', str(int(time.time())) + '.gif')
+        for file_name in sorted(os.listdir(image_directory)):
+            print(file_name)
+            if file_name.endswith('.jpg'):
+               file_path = os.path.join(image_directory, file_name)
+               images.append(imageio.imread(file_path))
+        imageio.mimsave('/var/www/html/img/calcam.gif', images)
+        logging.debug("Gif made")
 
 #------------------ Main ----------------------#
 
-getImage()
-makeGif()
-startThread(doEvery, 60, getImage)
-startThread(doEvery, 300, makeGif)
-print("Waiting...")
+logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s')
+info = {'stop': False}
+calcam = Camera('https://www.calvin.edu/img/calcam_large.jpg', 'calcam', '/var/www/html')
+calcam.startThread(calcam.getImageEvery, 60)
 while True:
-    time.sleep(10)
-
+    try:
+        time.sleep(1)
+    except KeyboardInterrupt:
+        break
