@@ -40,25 +40,49 @@ class Camera:
         logging.debug("Thread is waiting in background")
 
 
-    def makeGif(self):
+    def makeGif(self, start_time, end_time, framesPerSecond=15, picsPerHour=20):
+        '''Make a gif from a range of images
+        start and end: time stamps in seconds
+        '''
         images = []
-        gif_dir = os.path.join(self.dir, 'gifs', str(int(time.time())) + '.gif')
-        for file_name in sorted(os.listdir(image_directory)):
-            print(file_name)
-            if file_name.endswith('.jpg'):
-               file_path = os.path.join(image_directory, file_name)
-               images.append(imageio.imread(file_path))
-        imageio.mimsave('/var/www/html/img/calcam.gif', images)
+        gif_path = os.path.join(self.dir, 'gif', 'calcam' + '.gif')
+        image_list = os.listdir(os.path.join(self.dir, 'imgs'))
+        image_list.sort()
+        start_image = str(start_time) + '.jpg'
+        end_image = str(end_time) + '.jpg'
+        for index in range(len(image_list)):
+            if start_image <= image_list[index] and image_list[index].endswith('.jpg'):
+                start_index = index
+                break
+            else:
+                continue
+            logging.debug("Invalid start time, gif creation aborted...")
+            return
+        for index in range(len(image_list)):
+            logging.debug
+            if end_image >= sorted(image_list, reverse=True)[index] and image_list[index].endswith('.jpg'):
+                end_index = len(image_list) - index - 1
+                break
+            else:
+                continue
+            logging.debug("Invalid end time, gif creation aborted...")
+            return
+        for file_name in image_list[start_index:end_index]:
+            file_path = os.path.join(self.dir, 'imgs', file_name)
+            images.append(imageio.imread(file_path))
+            logging.debug(file_name)
+        imageio.mimsave(gif_path, images)
         logging.debug("Gif made")
 
 #------------------ Main ----------------------#
 
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s')
-info = {'stop': False}
 calcam = Camera('https://www.calvin.edu/img/calcam_large.jpg', 'calcam', '/var/www/html')
-calcam.startThread(calcam.getImageEvery, 60)
+calcam.startThread(calcam.getImageEvery, 180)
 while True:
     try:
         time.sleep(1)
     except KeyboardInterrupt:
         break
+
+#calcam.makeGif(1545639840,1545666340)
