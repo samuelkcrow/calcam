@@ -24,7 +24,7 @@ class Camera:
                 end_time = (time.time() // period + 1) * period
                 while time.time() < end_time:
                     time.sleep(period / 60)
-                image_dir = os.path.join(self.dir, 'imgs', str(int(time.time())) + '.jpg')
+                image_dir = os.path.join(self.dir, 'img', str(int(time.time())) + '.jpg')
                 image_file = imageio.imread(self.url)
                 imageio.imwrite(image_dir, image_file)
                 logging.debug("Image retrieved")
@@ -46,10 +46,11 @@ class Camera:
         '''
         images = []
         gif_path = os.path.join(self.dir, 'gif', 'calcam' + '.gif')
-        image_list = os.listdir(os.path.join(self.dir, 'imgs'))
+        image_list = os.listdir(os.path.join(self.dir, 'img'))
         image_list.sort()
         start_image = str(start_time) + '.jpg'
         end_image = str(end_time) + '.jpg'
+        logging.debug("Scanning images...")
         for index in range(len(image_list)):
             if start_image <= image_list[index] and image_list[index].endswith('.jpg'):
                 start_index = index
@@ -59,13 +60,15 @@ class Camera:
             logging.debug("Invalid start time, gif creation aborted...")
             return
         for index in range(len(image_list)):
-            if end_image >= sorted(image_list, reverse=True)[index] and image_list[index].endswith('.jpg'):
+            reverse_image_list = sorted(image_list, reverse=True)
+            if end_image >= reverse_image_list[index] and reverse_image_list[index].endswith('.jpg'):
                 end_index = len(image_list) - index - 1
                 break
             else:
                 continue
             logging.debug("Invalid end time, gif creation aborted...")
             return
+        logging.debug("Creating gif...")
         # actual start and end times
         start_time = int(image_list[start_index][:-4])
         end_time = int(image_list[end_index][:-4])
@@ -73,10 +76,10 @@ class Camera:
         frame_multiplier = actual_frames_per_hour // frames_per_hour + 1
         for index in range(start_index, end_index + 1):
             if index % frame_multiplier == 0:
-                file_path = os.path.join(self.dir, 'imgs', image_list[index])
+                file_path = os.path.join(self.dir, 'img', image_list[index])
                 images.append(imageio.imread(file_path))
         imageio.mimsave(gif_path, images, fps=frames_per_second)
-        logging.debug("Gif made")
+        logging.debug("Gif completed")
 
 #------------------ Main ----------------------#
 
@@ -89,4 +92,4 @@ while True:
     except KeyboardInterrupt:
         break
 '''
-calcam.makeGif(1545639840,1545666340)
+calcam.makeGif(1546580000,1546600000,20,10)
