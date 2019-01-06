@@ -92,4 +92,4 @@ while True:
     except KeyboardInterrupt:
         break
 '''
-calcam.makeGif(1546580000,1546600000,20,10)
+calcam.makeGif(1546550000,1546580000,20,10)
