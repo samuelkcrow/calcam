@@ -74,11 +74,13 @@ class Camera:
                 continue
             logging.debug("Invalid end time, gif creation aborted...")
             return
-        # actual start and end times
-        start_time = int(start_image[:-4])
-        end_time = int(end_image[:-4])
-        actual_frames_per_hour = len(image_list) / (end_time - start_time)
+        # actual start and end times not needed now
+        # start_time = int(start_image[:-4])
+        # end_time = int(end_image[:-4])
+        actual_frames_per_hour = (end_index - start_index) / duration
+        logging.debug(actual_frames_per_hour)
         frame_multiplier = actual_frames_per_hour // frames_per_hour + 1
+        logging.debug("FM: " + str(frame_multiplier))
         for index in range(start_index, end_index + 1):
             if index % frame_multiplier == 0:
                 file_path = os.path.join(self.dir, 'img', image_list[index])
@@ -98,4 +100,4 @@ while True:
     except KeyboardInterrupt:
         break
 '''
-calcam.makeGif('2019-01-04 16:00:00',8,20,10)
+calcam.makeGif('2019-01-10 00:00:00',72,20,2)
