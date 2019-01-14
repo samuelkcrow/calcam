@@ -24,9 +24,17 @@ class Camera:
                 end_time = (time.time() // period + 1) * period
                 while time.time() < end_time:
                     time.sleep(period / 60)
-                image_dir = os.path.join(self.dir, 'img', str(int(time.time())) + '.jpg')
-                image_file = imageio.imread(self.url)
-                imageio.imwrite(image_dir, image_file)
+                old_file_size = 0
+                while True:
+                    image_file = os.path.join(self.dir, 'img', str(int(time.time())) + '.jpg')
+                    image_contents = imageio.imread(self.url)
+                    imageio.imwrite(image_file, image_contents)
+                    file_size = os.stat(image_file).st_size
+                    if file_size == old_file_size:
+                        break
+                    else:
+                        old_file_size = file_size
+                        os.remove(image_file)
                 logging.debug("Image retrieved")
             except Exception:
                 logging.exception("Failed to retrieve image")
@@ -36,6 +44,7 @@ class Camera:
         Input: threadTarget, the method being started
         '''
         thread = threading.Thread(target=threadTarget, args=args, kwargs=kwargs)
+        thread.daemon = True
         thread.start()
         logging.debug("Thread is waiting in background")
 
@@ -93,11 +102,11 @@ class Camera:
 
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s')
 calcam = Camera('https://www.calvin.edu/img/calcam_large.jpg', 'calcam', '/var/www/html')
-'''calcam.startThread(calcam.getImageEvery, 180)
+calcam.startThread(calcam.getImageEvery, 180)
 while True:
     try:
         time.sleep(1)
     except KeyboardInterrupt:
         break
-'''
-calcam.makeGif('2019-01-10 00:00:00',72,20,2)
+
+# calcam.makeGif('2019-01-10 00:00:00',72,20,2)
