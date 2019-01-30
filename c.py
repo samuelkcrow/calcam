@@ -59,7 +59,6 @@ class Camera:
         image_list = os.listdir(os.path.join(self.dir, 'img'))
         image_list.sort()
         start_time = int(time.mktime(time.strptime(start_time, "%Y-%m-%d %H:%M:%S"))) + 5 * 3600  # timezone?
-        logging.debug(start_time)
         end_time = start_time + 3600 * duration
         start_image = str(start_time) + '.jpg'
         end_image = str(end_time) + '.jpg'
@@ -83,12 +82,13 @@ class Camera:
                 continue
             logging.debug("Invalid end time, gif creation aborted...")
             return
-        # actual start and end times not needed now
-        # start_time = int(start_image[:-4])
-        # end_time = int(end_image[:-4])
-        actual_frames_per_hour = (end_index - start_index) / duration
-        logging.debug(actual_frames_per_hour)
-        frame_multiplier = actual_frames_per_hour // frames_per_hour + 1
+        # actual start and end times
+        start_time = int(start_image[:-4])
+        end_time = int(end_image[:-4])
+        actual_frames_per_hour =  60 / (float((end_time - start_time) / 60) / float(end_index + 1 - start_index)) # this give the right answer but i dont know why
+        actual_frames_per_hour = round(actual_frames_per_hour)
+        frame_multiplier = int(actual_frames_per_hour // frames_per_hour)
+        if frame_multiplier < 1: frame_multiplier = 1
         logging.debug("FM: " + str(frame_multiplier))
         for index in range(start_index, end_index + 1):
             if index % frame_multiplier == 0:
@@ -102,11 +102,11 @@ class Camera:
 
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s')
 calcam = Camera('https://www.calvin.edu/img/calcam_large.jpg', 'calcam', '/var/www/html')
-calcam.startThread(calcam.getImageEvery, 180)
+'''calcam.startThread(calcam.getImageEvery, 180)
 while True:
     try:
         time.sleep(1)
     except KeyboardInterrupt:
         break
-
-# calcam.makeGif('2019-01-10 00:00:00',72,20,2)
+'''
+calcam.makeGif('2019-01-28 00:00:00',48,15,5)
