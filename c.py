@@ -49,7 +49,7 @@ class Camera:
         logging.debug("Thread is waiting in background")
 
 
-    def makeGif(self, start_time, duration, frames_per_second=20, frames_per_hour=20):
+    def makeGif_fph(self, start_time, duration, frames_per_second=20, frames_per_hour=20):
         '''Make a gif from a range of images
         Start_time: time in y-m-d h:m:s format
         Duration: in hours
@@ -97,6 +97,46 @@ class Camera:
         logging.debug("Creating gif...")
         imageio.mimsave(gif_path, images, fps=frames_per_second)
         logging.debug("Gif completed")
+        
+
+    def makeGif_day(self, start_time, duration, frames_per_second=20):
+        '''Make a gif from a range of images
+        Start_time: time in y-m-d h:m:s format
+        Duration: in days
+        '''
+        images = []
+        gif_path = os.path.join(self.dir, 'gif', 'calcam' + '.gif')
+        image_list = os.listdir(os.path.join(self.dir, 'img'))
+        image_list.sort()
+        start_time = int(time.mktime(time.strptime(start_time, "%Y-%m-%d %H:%M:%S"))) + 5 * 3600  # timezone?
+        start_image = str(start_time) + '.jpg'
+        logging.debug("Scanning images...")
+        for image in image_list:
+            if start_image <= image and image.endswith('.jpg'):
+                start_image = image
+                index = image_list.index(image)
+                break
+            else:
+                continue
+            logging.debug("Invalid start time, gif creation aborted...")
+            return
+        for i in range(duration):
+            file_path = os.path.join(self.dir, 'img', image_list[index])
+            images.append(imageio.imread(file_path))
+            index += 40
+            file_path = os.path.join(self.dir, 'img', image_list[index])
+            images.append(imageio.imread(file_path))
+            index += 40
+            file_path = os.path.join(self.dir, 'img', image_list[index])
+            images.append(imageio.imread(file_path))
+            index += 40
+            file_path = os.path.join(self.dir, 'img', image_list[index])
+            images.append(imageio.imread(file_path))
+            index += 358
+
+        logging.debug("Creating gif...")
+        imageio.mimsave(gif_path, images, fps=frames_per_second)
+        logging.debug("Gif completed")
 
 #------------------ Main ----------------------#
 
@@ -109,4 +149,5 @@ while True:
     except KeyboardInterrupt:
         break
 '''
-calcam.makeGif('2019-01-28 00:00:00',48,15,5)
+calcam.makeGif_fph('2019-01-18 18:00:00',36,15,5)
+# calcam.makeGif_day('2019-01-14 09:00:00',30,10)
