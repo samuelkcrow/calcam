@@ -17,8 +17,16 @@ class Camera:
         self.url = iurl
         self.name = iname
         self.dir = os.path.join(idir, iname)
-
+        
     def getImageEvery(self, period):
+        '''Downloads the image at the url every 'period' seconds and saves it.
+        Specifically, it downloads the image over and over until it gets two 
+        consecutive images with the same file size.
+        This was the only reliable way I found to avoid saving corrupted jpegs, 
+        which had different file sizes than the true image.
+        Repeated downloading only works if the image being downloaded is static 
+        and does not change more frequently than every few seconds.
+        '''
         while True:
             try:
                 end_time = (time.time() // period + 1) * period
@@ -141,8 +149,12 @@ class Camera:
 #------------------ Main ----------------------#
 
 logging.basicConfig(level=logging.DEBUG, format='%(relativeCreated)6d %(threadName)s %(message)s')
-calcam = Camera('https://www.calvin.edu/img/calcam_large.jpg', 'calcam', '/var/www/html')
-'''calcam.startThread(calcam.getImageEvery, 180)
+calcam = Camera('https://www.calvin.edu/img/calcam_large.jpg', 'calcam', '/var/www/html') # Hardcoded url for conveniece while testing
+'''The below code starts the image collection function 
+in its own thread and passes parameters to it
+Commented out for testing purposes
+
+calcam.startThread(calcam.getImageEvery, 180)
 while True:
     try:
         time.sleep(1)
